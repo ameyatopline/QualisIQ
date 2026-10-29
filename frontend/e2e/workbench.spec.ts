@@ -168,3 +168,44 @@ test("record a synthetic OOS result, replay it idempotently, and open the genera
   );
   await page.getByLabel("Close investigation").click();
 });
+
+test("investigation sheet supports swipe dismissal and reduced-motion keyboard use", async ({
+  page,
+}) => {
+  await login(page);
+  await page.locator(".case-link").first().click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(
+    page.getByRole("dialog").getByRole("heading").first(),
+  ).toBeVisible();
+  const handle = await page.locator(".sheet-grab").boundingBox();
+  if (!handle) throw new Error("Investigation drag handle unavailable");
+  await page.mouse.move(
+    handle.x + handle.width / 2,
+    handle.y + handle.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    handle.x + handle.width / 2 + 280,
+    handle.y + handle.height / 2,
+    { steps: 12 },
+  );
+  await page.mouse.up();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await login(page);
+  await page.locator(".case-link").first().click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.getByRole("button", { name: "Lineage", exact: true }).click();
+  await expect(
+    page.getByText("Source fingerprint", { exact: true }),
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await page
+    .getByRole("button", { name: "Source library", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Public source register" }),
+  ).toBeVisible();
+});

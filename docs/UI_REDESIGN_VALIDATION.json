@@ -1,0 +1,35 @@
+{
+  "validated_at_utc": "2026-10-29T20:18:31.618919+00:00",
+  "scope": "Frontend glass redesign; backend and schema unchanged",
+  "skill": "emilkowalski/skills/apple-design",
+  "build": "passed",
+  "typescript": "passed",
+  "browser_scenarios": {
+    "passed": 4,
+    "failed": 0,
+    "coverage": [
+      "Desktop login, filtering, investigation editing, transitions, sources, model and export",
+      "Mobile login, viewport containment and Escape dismissal",
+      "Result intake, idempotent replay and generated-case lineage",
+      "Sheet drag dismissal and reduced-motion keyboard navigation"
+    ]
+  },
+  "npm_audit_known_vulnerabilities": 0,
+  "motion": "Critically damped shared-layout navigation/tabs and interruptible investigation sheet; rightward gesture dismisses from current position",
+  "accessibility": [
+    "Native dialog focus and Escape behavior",
+    "Reduced-motion support",
+    "Reduced-transparency fallback",
+    "Higher contrast and forced-color fallbacks",
+    "Labelled mobile navigation and retained focus indicators"
+  ],
+  "subtexts": "Decorative page/panel subtitles, KPI captions and marketing copy removed; semantic data labels and validation disclosures retained",
+  "screenshots": [
+    "screenshots/control-tower-desktop.png",
+    "screenshots/control-tower-mobile.png",
+    "screenshots/sign-in.png",
+    "screenshots/investigation-glass.png",
+    "screenshots/model-evaluation.png"
+  ],
+  "public_deployment": false
+}

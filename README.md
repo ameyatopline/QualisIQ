@@ -25,6 +25,16 @@ Demo accounts: `qc_analyst@don-demo.test`, `qc_manager@don-demo.test`, `qa_revie
 
 `.env.example` documents variables; the API reads the process environment. It does not automatically load a `.env` file. Configure `ALLOWED_HOSTS` to the intended hostnames when serving behind a gateway; do not use a wildcard. No LLM key or external service is needed for the local workflow.
 
+### Interface and motion
+
+The workbench uses the installed [apple-design skill](.agents/skills/apple-design/SKILL.md): translucent navigation and object-page sheets, system typography, blue enterprise controls, and compact worklists. Decorative subtitles and KPI captions have been removed. Data labels, provenance, validation messages and synthetic-data disclosures remain visible.
+
+The investigation sheet supports rightward drag dismissal, spring return when released before dismissal, and Escape/close-button dismissal with native dialog focus handling. Navigation and segmented investigation tabs use shared spring transitions. Reduced-motion, reduced-transparency, higher-contrast and forced-color preferences have explicit fallbacks. No external font download is required.
+
+[Control tower](docs/screenshots/control-tower-desktop.png) · [Sign-in](docs/screenshots/sign-in.png) · [Investigation sheet](docs/screenshots/investigation-glass.png) · [Mobile](docs/screenshots/control-tower-mobile.png) · [UI validation](docs/UI_REDESIGN_VALIDATION.json)
+
+After pulling frontend updates, run `npm --prefix frontend ci` followed by `npm --prefix frontend run build`, then restart the backend and refresh the browser. Frontend dependencies include Motion; the backend API and database schema are unchanged by this redesign.
+
 ### Database location
 
 By default, the SQLite database is the file `don_qualityos_demo.db` in the folder from which you start the backend (normally the repository root). The signed-in workspace displays the actual active SQLite file path beneath the page title. In-memory databases have no file. When using PostgreSQL or production mode, connection details remain hidden; the database is stored on the configured database server. Override the backend connection with the `DATABASE_URL` process variable.

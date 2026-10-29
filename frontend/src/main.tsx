@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import {
+  AnimatePresence,
+  MotionConfig,
+  animate,
+  motion,
+  useDragControls,
+  useIsPresent,
+  useMotionValue,
+  useReducedMotion,
+} from "motion/react";
+import {
   Activity,
   ArrowDownToLine,
   ArrowRight,
@@ -8,7 +18,6 @@ import {
   Beaker,
   Check,
   CheckCircle2,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
@@ -86,20 +95,6 @@ function useData(path: string, token: string, revision = 0) {
     };
   }, [path, token, revision]);
   return state;
-}
-function IconLabel({
-  icon: Icon,
-  children,
-}: {
-  icon: LucideIcon;
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <Icon size={17} />
-      {children}
-    </>
-  );
 }
 function Badge({ value }: { value: string }) {
   return (
@@ -193,50 +188,62 @@ function Login({
       setBusy(false);
     }
   }
+  const reduced = useReducedMotion();
   return (
     <div className="login">
-      <section className="login-story">
+      <section className="login-story" aria-label="QualisIQ workspace">
         <div className="brand">
           <span className="brandmark">
-            <Layers size={22} />
+            <Layers size={23} />
           </span>
-          QualisIQ<span className="brand-dot">®</span>
+          QualisIQ
         </div>
         <div className="login-copy">
-          <span className="eyebrow">THE QUALITY INTELLIGENCE WORKBENCH</span>
+          <span className="login-category">QUALITY MANAGEMENT</span>
           <h1>
-            Every result.
-            <br />A clearer picture.
+            Quality.
+            <br />
+            <span>Connected.</span>
           </h1>
-          <p>
-            Connect laboratory evidence, site quality, and human expertise.
-            Bring your next investigation into focus.
-          </p>
-          <div className="login-art">
-            <div className="art-ring ring-one" />
-            <div className="art-ring ring-two" />
-            <div className="art-center">
-              <FlaskConical size={46} />
+          <div className="login-system" aria-label="Connected quality modules">
+            <div className="system-core">
+              <Layers size={32} />
+              <strong>QualisIQ</strong>
             </div>
-            <span className="art-label a">
-              <CheckCircle2 size={16} /> Evidence connected
-            </span>
-            <span className="art-label b">
-              <Sparkles size={16} /> Intelligence, in context
-            </span>
+            <div className="system-grid">
+              {[
+                [Beaker, "Laboratory"],
+                [FlaskConical, "Investigations"],
+                [ClipboardCheck, "CAPA"],
+                [ShieldCheck, "Evidence"],
+              ].map(([Icon, label]) => {
+                const ModuleIcon = Icon as LucideIcon;
+                return (
+                  <div className="system-module" key={String(label)}>
+                    <ModuleIcon size={20} />
+                    <span>{String(label)}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
         <div className="story-footer">
-          TRACEABLE BY DESIGN <span>HUMAN CONTROLLED</span>
+          <span className="live-dot" />
+          DON QUALITYOS<span>QC / QA</span>
         </div>
       </section>
       <section className="login-form">
-        <div className="login-form-inner">
-          <span className="pill">
-            <span className="live-dot" /> PHARMA QUALITY WORKSPACE
+        <motion.div
+          className="login-form-inner"
+          initial={{ opacity: 0, y: reduced ? 0 : 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", bounce: 0, visualDuration: 0.3 }}
+        >
+          <span className="login-lock">
+            <LockKeyhole size={22} />
           </span>
           <h2>Welcome to QualisIQ</h2>
-          <p>Sign in to your quality operations workspace.</p>
           <ErrorBox error={error} />
           <form onSubmit={login}>
             <label>
@@ -262,6 +269,7 @@ function Login({
             <label>
               Organization code
               <input
+                autoComplete="organization"
                 value={tenant}
                 onChange={(e) => setTenant(e.target.value)}
                 required
@@ -269,28 +277,19 @@ function Login({
             </label>
             <button className="primary login-submit" disabled={busy}>
               {busy ? "Signing in…" : "Sign in to workspace"}
-              <ArrowRight size={18} />
+              <ArrowRight size={17} />
             </button>
           </form>
           <div className="demo-note">
-            <Beaker size={20} />
-            <div>
-              <strong>Synthetic demonstration workspace</strong>
-              <p>
-                Use an account from the project README. All records are
-                generated. This system is not validated for GMP decisions.
-              </p>
-            </div>
+            <Beaker size={16} />
+            <span>Synthetic demo · Not validated for GMP decisions</span>
           </div>
-          <small>
-            <LockKeyhole size={13} /> Your session is held in memory and ends
-            when this page closes.
-          </small>
-        </div>
+        </motion.div>
       </section>
     </div>
   );
 }
+
 const nav = [
   { id: "tower", name: "Control tower", icon: LayoutDashboard },
   { id: "events", name: "Investigations", icon: FlaskConical },
@@ -382,28 +381,40 @@ function Workbench({
           <span className="brandmark">
             <Layers size={21} />
           </span>
-          QualisIQ<span className="brand-dot">®</span>
+          QualisIQ
         </div>
         <div className="workspace">
           <span className="workspace-icon">DQ</span>
           <div>
             <strong>DON QualityOS</strong>
-            <small>Pharma quality workspace</small>
           </div>
-          <ChevronDown size={14} />
+          <span className="workspace-mode">QC</span>
         </div>
-        <div className="nav-label">WORKSPACE</div>
+        <div className="nav-label">QUALITY MANAGEMENT</div>
         <nav>
           {nav.map(({ id, name, icon: Icon }) => (
             <button
               key={id}
               aria-label={name}
               title={name}
+              aria-current={page === id ? "page" : undefined}
               className={page === id ? "nav-item active" : "nav-item"}
               onClick={() => setPage(id)}
             >
+              {page === id && (
+                <motion.span
+                  className="nav-selection"
+                  layoutId="nav-selection"
+                  transition={{
+                    type: "spring",
+                    stiffness: 450,
+                    damping: 40,
+                    mass: 0.8,
+                  }}
+                />
+              )}
               <Icon size={18} />
-              <span>{name}</span>
+              <span>{id === "model" ? "Intelligence" : name}</span>
               {id === "events" && summary.data && (
                 <small>{fmt(summary.data.open_events)}</small>
               )}
@@ -412,18 +423,12 @@ function Workbench({
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="assurance">
-            <ShieldCheck size={21} />
-            <strong>Evidence before decisions.</strong>
-            <p>Connected records. Independent human review.</p>
-          </div>
           <button className="user-block" onClick={logout} aria-label="Sign out">
             <span className="avatar">
               {user.role.slice(0, 2).toUpperCase()}
             </span>
             <span>
               <strong>{pretty(user.role)}</strong>
-              <small>Sign out of workspace</small>
             </span>
             <LogOut size={16} />
           </button>
@@ -436,7 +441,13 @@ function Workbench({
             <strong>{nav.find((n) => n.id === page)?.name}</strong>
           </div>
           <div className="topbar-actions">
-            <button className="icon-btn mobile-logout" onClick={logout} aria-label="Sign out"><LogOut size={16}/></button>
+            <button
+              className="icon-btn mobile-logout"
+              onClick={logout}
+              aria-label="Sign out"
+            >
+              <LogOut size={16} />
+            </button>
             <span className="synthetic-top">
               <i /> Synthetic data
             </span>
@@ -455,10 +466,6 @@ function Workbench({
         <main>
           <div className="page-heading">
             <div>
-              <div className="eyebrow dark">
-                QUALITY OPERATIONS /{" "}
-                {page === "model" ? "INTELLIGENCE" : "OVERVIEW"}
-              </div>
               <h1>
                 {nav.find((n) => n.id === page)?.name}
                 {page === "tower" && (
@@ -501,347 +508,346 @@ function Workbench({
           <div className="database-storage" aria-label="Database storage">
             <Database size={15} aria-hidden="true" />
             <strong>Database</strong>
-            {storage.loading ? <span>Loading…</span> : storage.error ? <span role="status">Location unavailable</span> : <>
-              <span>{storage.data?.backend === "sqlite" ? "SQLite" : storage.data?.backend === "postgresql" ? "PostgreSQL" : storage.data?.backend}</span>
-              <code>{storage.data?.location}</code>
-            </>}
+            {storage.loading ? (
+              <span>Loading…</span>
+            ) : storage.error ? (
+              <span role="status">Location unavailable</span>
+            ) : (
+              <>
+                <span>
+                  {storage.data?.backend === "sqlite"
+                    ? "SQLite"
+                    : storage.data?.backend === "postgresql"
+                      ? "PostgreSQL"
+                      : storage.data?.backend}
+                </span>
+                <code>{storage.data?.location}</code>
+              </>
+            )}
           </div>
           <div className="disclosure">
             <Beaker size={15} />
             <strong>Synthetic demonstration</strong>
             <span>
-              All operational records are generated. Not validated for GMP use
-              or batch-release decisions.
+              Synthetic records · Not validated for GMP or batch release.
             </span>
           </div>
-          {page === "tower" && (
-            <>
-              <div className="kpi-grid">
-                <Kpi
-                  title="Laboratory results"
-                  value={summary.data?.total_results}
-                  icon={Beaker}
-                  note="Traceable to source records"
-                />
-                <Kpi
-                  title="Open investigations"
-                  value={summary.data?.open_events}
-                  icon={FlaskConical}
-                  note="Awaiting quality resolution"
-                  tone="amber"
-                />
-                <Kpi
-                  title="Out-of-specification"
-                  value={summary.data?.outcomes.OOS}
-                  icon={AlertTriangle}
-                  note="Approved-limit exceptions"
-                  tone="red"
-                />
-                <Kpi
-                  title="CAPA records"
-                  value={
-                    summary.data
-                      ? (Object.values(summary.data.capas).reduce(
-                          (a: any, b: any) => a + b,
-                          0,
-                        ) as number)
-                      : undefined
-                  }
-                  icon={ClipboardCheck}
-                  note="Corrective & preventive actions"
-                />
-              </div>
-              <div className="chart-grid">
-                <section className="panel">
-                  <div className="panel-heading">
-                    <div>
-                      <h2>Quality signals over time</h2>
-                      <p>Recorded exceptions by measurement date</p>
-                    </div>
-                    <span className="muted small-text">Up to 90 days</span>
-                  </div>
-                  <div className="chart-legend">
-                    <span>
-                      <i className="legend-oos" />
-                      Out of specification
-                    </span>
-                    <span>
-                      <i className="legend-oot" />
-                      Out of trend
-                    </span>
-                  </div>
-                  {trends.loading ? (
-                    <div className="loading">Loading quality signals…</div>
-                  ) : trends.error ? (
-                    <ErrorBox error={trends.error} />
-                  ) : (
-                    <TrendChart data={trends.data || []} />
-                  )}
-                </section>
-                <section className="panel outcome-panel">
-                  <div className="panel-heading">
-                    <div>
-                      <h2>Result disposition</h2>
-                      <p>Rule-based laboratory outcomes</p>
-                    </div>
-                    <Activity size={18} />
-                  </div>
-                  <Disposition outcomes={summary.data?.outcomes || {}} />
-                </section>
-              </div>
-              <section className="insight-strip">
-                <span className="insight-icon">
-                  <Sparkles size={22} />
-                </span>
-                <div>
-                  <span className="eyebrow dark">QUALISIQ INTELLIGENCE</span>
-                  <h3>Investigate with context. Decide with evidence.</h3>
-                  <p>
-                    Explore anomaly scores and source-linked checklists. Every
-                    quality decision stays with your team.
-                  </p>
-                </div>
-                <button className="button" onClick={() => setPage("model")}>
-                  Explore intelligence
-                  <ArrowUpRight size={16} />
-                </button>
-              </section>
-            </>
-          )}
-          {["tower", "events"].includes(page) && (
-            <section className="panel event-panel">
-              <div className="panel-heading">
-                <div>
-                  <h2>
-                    {page === "tower"
-                      ? "Investigation worklist"
-                      : "Quality investigations"}
-                    <span className="count">{fmt(events.data?.total)}</span>
-                  </h2>
-                  <p>
-                    Prioritize, investigate, and follow every exception to
-                    resolution.
-                  </p>
-                </div>
-                {page === "tower" && (
-                  <button
-                    className="text-btn"
-                    onClick={() => setPage("events")}
-                  >
-                    View all investigations
-                    <ArrowRight size={15} />
-                  </button>
-                )}
-              </div>
-              <div className="table-toolbar">
-                <label className="search">
-                  <Search size={17} />
-                  <input
-                    aria-label="Search investigations"
-                    placeholder="Search case, test, or source record…"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+          <motion.div
+            className="view-content"
+            key={page}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.16 }}
+          >
+            {page === "tower" && (
+              <>
+                <div className="kpi-grid">
+                  <Kpi
+                    title="Laboratory results"
+                    value={summary.data?.total_results}
+                    icon={Beaker}
                   />
-                </label>
-                <select
-                  aria-label="Filter exception type"
-                  value={kind}
-                  onChange={(e) => setKind(e.target.value)}
-                >
-                  <option value="">All exception types</option>
-                  <option>OOS</option>
-                  <option>OOT</option>
-                </select>
-                <select
-                  aria-label="Filter investigation status"
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                >
-                  <option value="">All statuses</option>
-                  {[
-                    "DETECTED",
-                    "TRIAGED",
-                    "PHASE_I_OPEN",
-                    "PHASE_I_REVIEW",
-                    "PHASE_II_OPEN",
-                    "PHASE_II_REVIEW",
-                    "OOT_REVIEW",
-                    "OOT_ESCALATED",
-                    "QA_EVALUATION",
-                    "REPORT_DRAFT",
-                    "QA_REVIEW_PENDING",
-                    "APPROVED",
-                    "CLOSED",
-                  ].map((s) => (
-                    <option key={s} value={s}>
-                      {pretty(s)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <ErrorBox error={events.error} />
-              {events.loading ? (
-                <div className="loading">Loading investigations…</div>
-              ) : (
-                <>
-                  <div className="table-scroll">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Investigation</th>
-                          <th>Type</th>
-                          <th>Test characteristic</th>
-                          <th>Site</th>
-                          <th>Result</th>
-                          <th>Status</th>
-                          <th>
-                            <span className="sr-only">Open</span>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {events.data?.items.map((e: Data) => (
-                          <tr key={e.id}>
-                            <td>
-                              <button
-                                className="case-link"
-                                onClick={() => setSelected(e.id)}
-                              >
-                                {e.event_number}
-                              </button>
-                              <small>Spec {e.specification_version}</small>
-                            </td>
-                            <td>
-                              <Badge value={e.kind} />
-                            </td>
-                            <td>{e.test_name}</td>
-                            <td>
-                              {sites.data?.find((s: Data) => s.id === e.site_id)
-                                ?.code || e.site_id}
-                            </td>
-                            <td className="numeric">
-                              {Number(e.result_value).toFixed(2)}{" "}
-                              <span className="muted">{e.unit}</span>
-                            </td>
-                            <td>
-                              <Badge value={e.status} />
-                            </td>
-                            <td>
-                              <button
-                                className="icon-btn"
-                                aria-label={"Open " + e.event_number}
-                                onClick={() => setSelected(e.id)}
-                              >
-                                <ArrowUpRight size={16} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {!events.data?.items.length && <Empty />}
-                  <div className="pagination">
-                    <span>
-                      {events.data?.total
-                        ? `${offset + 1}–${Math.min(offset + 10, events.data.total)} of ${fmt(events.data.total)} investigations`
-                        : "0 investigations"}
-                    </span>
-                    <div>
-                      <button
-                        className="icon-btn"
-                        aria-label="Previous page"
-                        disabled={offset === 0}
-                        onClick={() => setOffset((o) => Math.max(0, o - 10))}
-                      >
-                        <ChevronLeft size={17} />
-                      </button>
-                      <button
-                        className="icon-btn"
-                        aria-label="Next page"
-                        disabled={offset + 10 >= (events.data?.total || 0)}
-                        onClick={() => setOffset((o) => o + 10)}
-                      >
-                        <ChevronRight size={17} />
-                      </button>
+                  <Kpi
+                    title="Open investigations"
+                    value={summary.data?.open_events}
+                    icon={FlaskConical}
+                    tone="amber"
+                  />
+                  <Kpi
+                    title="Out-of-specification"
+                    value={summary.data?.outcomes.OOS}
+                    icon={AlertTriangle}
+                    tone="red"
+                  />
+                  <Kpi
+                    title="CAPA records"
+                    value={
+                      summary.data
+                        ? (Object.values(summary.data.capas).reduce(
+                            (a: any, b: any) => a + b,
+                            0,
+                          ) as number)
+                        : undefined
+                    }
+                    icon={ClipboardCheck}
+                  />
+                </div>
+                <div className="chart-grid">
+                  <section className="panel">
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Quality signals over time</h2>
+                      </div>
+                      <span className="muted small-text">Up to 90 days</span>
                     </div>
-                  </div>
-                </>
-              )}
-            </section>
-          )}
-          {page === "sites" && (
-            <section className="site-grid">
-              {sites.data?.map((s: Data) => (
-                <article className="panel site-card" key={s.id}>
-                  <div className="site-card-top">
-                    <span className="site-icon">
-                      <Globe2 size={23} />
-                    </span>
-                    <span className="muted small-text">{s.code}</span>
-                  </div>
-                  <h2>{s.name}</h2>
-                  <p>{s.region}</p>
-                  <div className="site-numbers">
-                    <div>
-                      <strong>{fmt(s.results)}</strong>
-                      <small>Results</small>
+                    <div className="chart-legend">
+                      <span>
+                        <i className="legend-oos" />
+                        Out of specification
+                      </span>
+                      <span>
+                        <i className="legend-oot" />
+                        Out of trend
+                      </span>
                     </div>
-                    <div>
-                      <strong>{fmt(s.open_events)}</strong>
-                      <small>Open cases</small>
+                    {trends.loading ? (
+                      <div className="loading">Loading quality signals…</div>
+                    ) : trends.error ? (
+                      <ErrorBox error={trends.error} />
+                    ) : (
+                      <TrendChart data={trends.data || []} />
+                    )}
+                  </section>
+                  <section className="panel outcome-panel">
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Result disposition</h2>
+                      </div>
+                      <Activity size={18} />
                     </div>
-                    <div>
-                      <strong>{fmt(s.oos + s.oot)}</strong>
-                      <small>Exceptions</small>
-                    </div>
+                    <Disposition outcomes={summary.data?.outcomes || {}} />
+                  </section>
+                </div>
+              </>
+            )}
+            {["tower", "events"].includes(page) && (
+              <section className="panel event-panel">
+                <div className="panel-heading">
+                  <div>
+                    <h2>
+                      {page === "tower"
+                        ? "Investigation worklist"
+                        : "Quality investigations"}
+                      <span className="count">{fmt(events.data?.total)}</span>
+                    </h2>
                   </div>
-                  <button
-                    className="text-btn"
-                    onClick={() => {
-                      setSite(String(s.id));
-                      setPage("events");
-                    }}
+                  {page === "tower" && (
+                    <button
+                      className="text-btn"
+                      onClick={() => setPage("events")}
+                    >
+                      View all investigations
+                      <ArrowRight size={15} />
+                    </button>
+                  )}
+                </div>
+                <div className="table-toolbar">
+                  <label className="search">
+                    <Search size={17} />
+                    <input
+                      aria-label="Search investigations"
+                      placeholder="Search case, test, or source record…"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </label>
+                  <select
+                    aria-label="Filter exception type"
+                    value={kind}
+                    onChange={(e) => setKind(e.target.value)}
                   >
-                    Open site worklist
-                    <ArrowRight size={15} />
-                  </button>
-                </article>
-              ))}
-            </section>
-          )}
-          {page === "intake" && (
-            <ResultIntake token={token} open={setSelected} onChange={refresh} />
-          )}
-          {page === "capas" && (
-            <CapaTable
-              token={token}
-              site={site}
-              revision={revision}
-              open={setSelected}
-            />
-          )}
-          {page === "documents" && <Documents token={token} />}
-          {page === "sources" && <Sources token={token} />}
-          {page === "model" && <ModelPage token={token} />}
+                    <option value="">All exception types</option>
+                    <option>OOS</option>
+                    <option>OOT</option>
+                  </select>
+                  <select
+                    aria-label="Filter investigation status"
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                  >
+                    <option value="">All statuses</option>
+                    {[
+                      "DETECTED",
+                      "TRIAGED",
+                      "PHASE_I_OPEN",
+                      "PHASE_I_REVIEW",
+                      "PHASE_II_OPEN",
+                      "PHASE_II_REVIEW",
+                      "OOT_REVIEW",
+                      "OOT_ESCALATED",
+                      "QA_EVALUATION",
+                      "REPORT_DRAFT",
+                      "QA_REVIEW_PENDING",
+                      "APPROVED",
+                      "CLOSED",
+                    ].map((s) => (
+                      <option key={s} value={s}>
+                        {pretty(s)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <ErrorBox error={events.error} />
+                {events.loading ? (
+                  <div className="loading">Loading investigations…</div>
+                ) : (
+                  <>
+                    <div className="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Investigation</th>
+                            <th>Type</th>
+                            <th>Test characteristic</th>
+                            <th>Site</th>
+                            <th>Result</th>
+                            <th>Status</th>
+                            <th>
+                              <span className="sr-only">Open</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {events.data?.items.map((e: Data) => (
+                            <tr key={e.id}>
+                              <td>
+                                <button
+                                  className="case-link"
+                                  onClick={() => setSelected(e.id)}
+                                >
+                                  {e.event_number}
+                                </button>
+                                <small>Spec {e.specification_version}</small>
+                              </td>
+                              <td>
+                                <Badge value={e.kind} />
+                              </td>
+                              <td>{e.test_name}</td>
+                              <td>
+                                {sites.data?.find(
+                                  (s: Data) => s.id === e.site_id,
+                                )?.code || e.site_id}
+                              </td>
+                              <td className="numeric">
+                                {Number(e.result_value).toFixed(2)}{" "}
+                                <span className="muted">{e.unit}</span>
+                              </td>
+                              <td>
+                                <Badge value={e.status} />
+                              </td>
+                              <td>
+                                <button
+                                  className="icon-btn"
+                                  aria-label={"Open " + e.event_number}
+                                  onClick={() => setSelected(e.id)}
+                                >
+                                  <ArrowUpRight size={16} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {!events.data?.items.length && <Empty />}
+                    <div className="pagination">
+                      <span>
+                        {events.data?.total
+                          ? `${offset + 1}–${Math.min(offset + 10, events.data.total)} of ${fmt(events.data.total)} investigations`
+                          : "0 investigations"}
+                      </span>
+                      <div>
+                        <button
+                          className="icon-btn"
+                          aria-label="Previous page"
+                          disabled={offset === 0}
+                          onClick={() => setOffset((o) => Math.max(0, o - 10))}
+                        >
+                          <ChevronLeft size={17} />
+                        </button>
+                        <button
+                          className="icon-btn"
+                          aria-label="Next page"
+                          disabled={offset + 10 >= (events.data?.total || 0)}
+                          onClick={() => setOffset((o) => o + 10)}
+                        >
+                          <ChevronRight size={17} />
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </section>
+            )}
+            {page === "sites" && (
+              <section className="site-grid">
+                {sites.data?.map((s: Data) => (
+                  <article className="panel site-card" key={s.id}>
+                    <div className="site-card-top">
+                      <span className="site-icon">
+                        <Globe2 size={23} />
+                      </span>
+                      <span className="muted small-text">{s.code}</span>
+                    </div>
+                    <h2>{s.name}</h2>
+                    <p>{s.region}</p>
+                    <div className="site-numbers">
+                      <div>
+                        <strong>{fmt(s.results)}</strong>
+                        <small>Results</small>
+                      </div>
+                      <div>
+                        <strong>{fmt(s.open_events)}</strong>
+                        <small>Open cases</small>
+                      </div>
+                      <div>
+                        <strong>{fmt(s.oos + s.oot)}</strong>
+                        <small>Exceptions</small>
+                      </div>
+                    </div>
+                    <button
+                      className="text-btn"
+                      onClick={() => {
+                        setSite(String(s.id));
+                        setPage("events");
+                      }}
+                    >
+                      Open site worklist
+                      <ArrowRight size={15} />
+                    </button>
+                  </article>
+                ))}
+              </section>
+            )}
+            {page === "intake" && (
+              <ResultIntake
+                token={token}
+                open={setSelected}
+                onChange={refresh}
+              />
+            )}
+            {page === "capas" && (
+              <CapaTable
+                token={token}
+                site={site}
+                revision={revision}
+                open={setSelected}
+              />
+            )}
+            {page === "documents" && <Documents token={token} />}
+            {page === "sources" && <Sources token={token} />}
+            {page === "model" && <ModelPage token={token} />}
+          </motion.div>
           <footer className="main-footer">
             <span>
-              QualisIQ <span className="footer-sep">/</span> Quality
-              intelligence, connected.
+              QualisIQ <span className="footer-sep">/</span> QC WORKSPACE
             </span>
             <span>DEMO WORKSPACE · HUMAN REVIEW REQUIRED</span>
           </footer>
         </main>
       </div>
-      {selected !== null && (
-        <Investigation
-          token={token}
-          id={selected}
-          user={user}
-          close={() => setSelected(null)}
-          onChange={refresh}
-        />
-      )}
+      <AnimatePresence initial={false}>
+        {selected !== null && (
+          <Investigation
+            key={selected}
+            token={token}
+            id={selected}
+            user={user}
+            close={() => setSelected(null)}
+            onChange={refresh}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -849,13 +855,11 @@ function Kpi({
   title,
   value,
   icon: Icon,
-  note,
   tone = "green",
 }: {
   title: string;
   value?: number;
   icon: LucideIcon;
-  note: string;
   tone?: string;
 }) {
   return (
@@ -867,10 +871,6 @@ function Kpi({
         </span>
       </div>
       <strong>{value === undefined ? "—" : fmt(value)}</strong>
-      <div className="kpi-note">
-        <span className={"mini-dot " + tone} />
-        {note}
-      </div>
     </article>
   );
 }
@@ -917,13 +917,13 @@ function TrendChart({ data }: { data: Data[] }) {
         ))}
         <polygon
           points={`${p},${h - p} ${coords("OOS")} ${w - p},${h - p}`}
-          fill="#cfe5dc"
+          fill="#d4e4fb"
           opacity=".45"
         />
         <polyline
           points={coords("OOS")}
           fill="none"
-          stroke="#358a70"
+          stroke="#2476e5"
           strokeWidth="2.4"
         />
         <polyline
@@ -963,14 +963,16 @@ function Disposition({ outcomes }: { outcomes: Data }) {
   const normal = outcomes.IN_SPEC || 0;
   const rate = total ? (normal / total) * 100 : 0;
   const other = outcomes.OOT_NOT_ASSESSED || 0;
-  const ootEnd = total ? (normal + (outcomes.OOT || 0)) / total * 100 : 0;
-  const oosEnd = total ? (normal + (outcomes.OOT || 0) + (outcomes.OOS || 0)) / total * 100 : 0;
+  const ootEnd = total ? ((normal + (outcomes.OOT || 0)) / total) * 100 : 0;
+  const oosEnd = total
+    ? ((normal + (outcomes.OOT || 0) + (outcomes.OOS || 0)) / total) * 100
+    : 0;
   return (
     <div className="disposition">
       <div
         className="donut"
         style={{
-          background: `conic-gradient(#3a8a70 0 ${rate}%, #d9a34e ${rate}% ${ootEnd}%, #ce7263 ${ootEnd}% ${oosEnd}%, #a6b0a1 0 100%)`,
+          background: `conic-gradient(#2e79df 0 ${rate}%, #d9a34e ${rate}% ${ootEnd}%, #ce7263 ${ootEnd}% ${oosEnd}%, #a6b0a1 0 100%)`,
         }}
       >
         <div>
@@ -1028,7 +1030,6 @@ function CapaTable({
             Corrective & preventive actions{" "}
             <span className="count">{fmt(data?.total)}</span>
           </h2>
-          <p>Linked investigations, due dates, and effectiveness review.</p>
         </div>
       </div>
       <ErrorBox error={error} />
@@ -1104,7 +1105,6 @@ function Documents({ token }: { token: string }) {
       <div className="panel-heading">
         <div>
           <h2>Controlled document register</h2>
-          <p>Metadata records. Full document content has not been imported.</p>
         </div>
         <FileCheck2 size={22} />
       </div>
@@ -1137,7 +1137,7 @@ function Sources({ token }: { token: string }) {
       <section className="insight-strip">
         <Database size={28} />
         <div>
-          <h3>Provenance is part of the product.</h3>
+          <h3>Reference metadata</h3>
           <p>
             Operational records are synthetic. Public links inform the design;
             they are not private manufacturer data or model-training evidence.
@@ -1148,10 +1148,6 @@ function Sources({ token }: { token: string }) {
         <div className="panel-heading">
           <div>
             <h2>Public source register</h2>
-            <p>
-              References supplied with the project. External content is not
-              indexed or verified here.
-            </p>
           </div>
         </div>
         <ErrorBox error={error} />
@@ -1202,12 +1198,7 @@ function ModelPage({ token }: { token: string }) {
       <section className="model-hero">
         <div>
           <span className="pill">RESEARCH MODEL · SYNTHETIC EVALUATION</span>
-          <h2>Intelligence you can inspect.</h2>
-          <p>
-            Anomaly triage with a reproducible benchmark, a statistical
-            baseline, and traceable model artifacts. Approved rules remain
-            authoritative.
-          </p>
+          <h2>Model evaluation</h2>
           <span className="small-text">
             {d.version} · {d.algorithm}
           </span>
@@ -1217,26 +1208,15 @@ function ModelPage({ token }: { token: string }) {
         </div>
       </section>
       <div className="kpi-grid">
-        <Kpi
-          title="Held-out results"
-          value={d.metrics.rows}
-          icon={Database}
-          note={`${fmt(d.metrics.positives)} seeded proxy positives`}
-        />
-        <Metric
-          title="Sensitivity / recall"
-          value={pct(d.metrics.recall)}
-          note="At a 1% calibration alert budget"
-        />
+        <Kpi title="Held-out results" value={d.metrics.rows} icon={Database} />
+        <Metric title="Sensitivity / recall" value={pct(d.metrics.recall)} />
         <Metric
           title="False-positive rate"
           value={pct(d.metrics.false_positive_rate)}
-          note="On synthetic holdout results"
         />
         <Metric
           title="Average precision"
           value={d.metrics.average_precision?.toFixed(3) || "—"}
-          note="Ranking metric, not accuracy"
         />
       </div>
       <div className="chart-grid model-grid">
@@ -1244,7 +1224,6 @@ function ModelPage({ token }: { token: string }) {
           <div className="panel-heading">
             <div>
               <h2>Model vs. statistical baseline</h2>
-              <p>Same held-out batches and calibration alert budget.</p>
             </div>
           </div>
           <div className="table-scroll">
@@ -1291,6 +1270,20 @@ function ModelPage({ token }: { token: string }) {
         </section>
         <section className="panel validation">
           <h2>Validation boundaries</h2>
+          <dl className="model-parameters">
+            <div>
+              <dt>Proxy positives</dt>
+              <dd>{fmt(d.metrics.positives)}</dd>
+            </div>
+            <div>
+              <dt>Alert budget</dt>
+              <dd>1%</dd>
+            </div>
+            <div>
+              <dt>Evaluation data</dt>
+              <dd>Synthetic</dd>
+            </div>
+          </dl>
           <div className="validation-row">
             <CheckCircle2 size={17} />
             <span>Batch-disjoint train / calibration / test</span>
@@ -1323,15 +1316,7 @@ function ModelPage({ token }: { token: string }) {
     </>
   );
 }
-function Metric({
-  title,
-  value,
-  note,
-}: {
-  title: string;
-  value: string;
-  note: string;
-}) {
+function Metric({ title, value }: { title: string; value: string }) {
   return (
     <article className="panel kpi">
       <div className="kpi-top">
@@ -1339,7 +1324,6 @@ function Metric({
         <Activity size={18} />
       </div>
       <strong>{value}</strong>
-      <div className="kpi-note">{note}</div>
     </article>
   );
 }
@@ -1357,6 +1341,11 @@ function Investigation({
   onChange: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const reduced = useReducedMotion();
+  const dragControls = useDragControls();
+  const sheetX = useMotionValue(0);
+  const isPresent = useIsPresent();
+  const dismissX = isPresent ? 72 : Math.max(72, sheetX.get() + 72);
   const [revision, setRevision] = useState(0);
   const event = useData(`/quality/events/${id}`, token, revision);
   const lineage = useData(`/workbench/events/${id}/lineage`, token, revision);
@@ -1370,7 +1359,9 @@ function Investigation({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState("");
   useEffect(() => {
-    dialog.current?.showModal();
+    const element = dialog.current;
+    element?.showModal();
+    return () => element?.close();
   }, []);
   useEffect(() => {
     if (event.data) setForm(event.data.investigation || {});
@@ -1418,14 +1409,62 @@ function Investigation({
     ["qc_analyst", "qc_manager", "admin"].includes(user.role) &&
     !["APPROVED", "CLOSED"].includes(e?.status);
   return (
-    <dialog
+    <motion.dialog
       ref={dialog}
+      aria-label="Quality investigation"
+      style={{ x: sheetX }}
+      initial={{ x: reduced ? 0 : 72, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: reduced ? 0 : dismissX, opacity: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 450,
+        damping: 40,
+        mass: 0.8,
+        opacity: { duration: 0.16 },
+      }}
+      drag={reduced ? false : "x"}
+      dragListener={false}
+      dragControls={dragControls}
+      dragConstraints={{
+        left: 0,
+        right: typeof window !== "undefined" ? window.innerWidth : 700,
+      }}
+      dragElastic={0}
+      dragMomentum={false}
+      onDragEnd={(_, info) => {
+        const projected =
+          sheetX.get() + ((info.velocity.x / 1000) * 0.995) / (1 - 0.995);
+        if (
+          projected > Math.min(220, window.innerWidth * 0.35) &&
+          info.velocity.x > -200
+        )
+          close();
+        else
+          animate(sheetX, 0, {
+            type: "spring",
+            stiffness: 450,
+            damping: 40,
+            mass: 0.8,
+            velocity: info.velocity.x,
+          });
+      }}
       className="investigation-dialog"
-      onCancel={close}
+      onCancel={(event) => {
+        event.preventDefault();
+        close();
+      }}
       onClick={(ev) => {
         if (ev.target === dialog.current) close();
       }}
     >
+      <div
+        className="sheet-grab"
+        aria-hidden="true"
+        onPointerDown={(event) => dragControls.start(event)}
+      >
+        <span />
+      </div>
       <div className="drawer-head">
         <span className="eyebrow dark">INVESTIGATION OBJECT PAGE</span>
         <button
@@ -1460,10 +1499,23 @@ function Investigation({
                 (t) => (
                   <button
                     key={t}
+                    aria-pressed={tab === t}
                     className={tab === t ? "selected" : ""}
                     onClick={() => setTab(t)}
                   >
-                    {pretty(t)}
+                    {tab === t && (
+                      <motion.span
+                        className="tab-selection"
+                        layoutId={`investigation-tab-${id}`}
+                        transition={{
+                          type: "spring",
+                          stiffness: 450,
+                          damping: 40,
+                          mass: 0.8,
+                        }}
+                      />
+                    )}
+                    <span>{pretty(t)}</span>
                   </button>
                 ),
               )}
@@ -1522,10 +1574,6 @@ function Investigation({
               {tab === "investigation" && (
                 <>
                   <h3>Investigation draft</h3>
-                  <p>
-                    Record findings and gaps. Every save is version checked and
-                    audit recorded.
-                  </p>
                   <form
                     onSubmit={(ev) => {
                       ev.preventDefault();
@@ -1689,7 +1737,7 @@ function Investigation({
           </>
         )
       )}
-    </dialog>
+    </motion.dialog>
   );
 }
 function Workflow({
@@ -1772,7 +1820,9 @@ function Workflow({
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <MotionConfig reducedMotion="user">
+      <App />
+    </MotionConfig>
   </React.StrictMode>,
 );
 
@@ -1839,10 +1889,6 @@ function ResultIntake({
       <div className="panel-heading">
         <div>
           <h2>Record a laboratory result</h2>
-          <p>
-            Validated lineage, approved-specification checks, and idempotent
-            ingestion.
-          </p>
         </div>
         <Beaker size={21} />
       </div>
