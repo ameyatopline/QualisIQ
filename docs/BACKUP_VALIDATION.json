@@ -1,0 +1,14 @@
+{
+  "source_name": "don_qualityos_demo.db",
+  "backup_name": "demo-backup.db",
+  "sha256": "14c69b7cda3af9bc78fb865cca2da21287dd05b75f1c624f17469f6f1f4fc631",
+  "integrity": "ok",
+  "foreign_key_check": "ok",
+  "counts": {
+    "test_results": 50000,
+    "quality_events": 1192,
+    "audit_logs": 1273
+  },
+  "classification": "SYNTHETIC DEMO",
+  "limits": "Local SQLite backup only; not a production RPO/RTO or encrypted disaster recovery drill"
+}

@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.env
+*.db
+*.db-shm
+*.db-wal
+.pytest_cache/
+*.sqlite
+node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+artifacts/
+*.tsbuildinfo

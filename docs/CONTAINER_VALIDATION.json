@@ -1,0 +1,9 @@
+{
+  "image": "qualisiq:local-review",
+  "image_id": "sha256:e12a0160ef9425b972ebaa0de8e7cb0360f7b2b0d9df58da4910b60f965ae307",
+  "build": "passed",
+  "runtime_user": "qualisiq",
+  "readiness": "passed",
+  "built_website": "passed",
+  "scope": "Local container with empty SQLite demo database; no public deployment or production approval"
+}

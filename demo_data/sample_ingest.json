@@ -1,0 +1,14 @@
+{
+  "site_code": "DQ-001",
+  "material_code": "DON-MAT-001",
+  "batch_number": "DON-SYN-B-0000001",
+  "inspection_lot": "DON-SYN-L-0000001",
+  "sample_number": "DON-SYN-S-0000001",
+  "test_name": "Assay",
+  "value": 93.7,
+  "unit": "%",
+  "measured_at": "2026-10-29T10:00:00Z",
+  "source_system": "SYNTHETIC_CDS",
+  "source_record_id": "CDS-DEMO-9999",
+  "idempotency_key": "CDS-DEMO-9999-IMPORT-1"
+}

@@ -1,0 +1,32 @@
+{
+  "validated_at": "2026-10-29T18:57:44.491148+00:00",
+  "python_tests": {
+    "passed": 34,
+    "failed": 0,
+    "warnings": 10
+  },
+  "browser_scenarios": {
+    "passed": 3,
+    "failed": 0,
+    "scope": "Desktop workflow; mobile login/layout; OOS intake/idempotent replay/lineage"
+  },
+  "web_build": "passed",
+  "typescript": "passed",
+  "python_dependency_consistency": "passed",
+  "npm_audit": {
+    "known_vulnerabilities": 0
+  },
+  "original_demo_database_unchanged": true,
+  "original_demo_database_sha256": "dcf6ae7d271a7d111bd8b7f8755e31ce35caccdcec9611f1a1bf6eb5dcaa565b",
+  "public_deployment": false,
+  "gmp_validated": false,
+  "production_approved": false,
+  "artifact_reports": [
+    "POSTGRES_VALIDATION.json",
+    "CONTAINER_VALIDATION.json",
+    "MODEL_EVALUATION.json",
+    "LOCAL_BENCHMARK.json",
+    "BACKUP_VALIDATION.json",
+    "source_checks.json"
+  ]
+}

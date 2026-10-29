@@ -1,0 +1,37 @@
+# Local demonstration only. No production hardening, backups, SSO or validated GxP controls.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: don_qualityos
+      POSTGRES_USER: don
+      POSTGRES_PASSWORD: local_demo_change_me
+    ports:
+      - "127.0.0.1:5439:5432"
+    volumes:
+      - don_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U don -d don_qualityos"]
+      interval: 5s
+      retries: 10
+  api:
+    build:
+      context: .
+      secrets:
+        - proxy_ca
+    environment:
+      APP_ENV: demo
+      DATABASE_URL: postgresql+psycopg://don:local_demo_change_me@postgres:5432/don_qualityos
+      DEMO_PASSWORD: DemoOnly!2026
+      JWT_SECRET: local-only-demo-key-change-before-any-deployment-2026
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+volumes:
+  don_pg:
+
+secrets:
+  proxy_ca:
+    file: ${QI_BUILD_CA_BUNDLE:-/etc/ssl/certs/ca-certificates.crt}

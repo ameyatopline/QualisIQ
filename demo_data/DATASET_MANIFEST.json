@@ -1,0 +1,37 @@
+{
+  "product": "DON QualityOS",
+  "data_classification": "SYNTHETIC / NON-GMP / DEMO ONLY",
+  "generated_organization": "DON QualityOS Fictional Demo Organization",
+  "source_system": "SYNTHETIC_LIMS",
+  "real_manufacturer_data": false,
+  "production_throughput_verified": false,
+  "real_QA_approvals": false,
+  "metrics": {
+    "sites": 24,
+    "materials": 8,
+    "batches": 5000,
+    "inspection_lots": 5000,
+    "samples": 5000,
+    "test_results": 50000,
+    "oos_oot_alerts": 1192,
+    "quality_events": 1192,
+    "capas": 60,
+    "controlled_documents": 4,
+    "audit_events": 1273,
+    "event_states": {
+      "APPROVED": 24,
+      "CLOSED": 24,
+      "DETECTED": 952,
+      "OOT_ESCALATED": 3,
+      "OOT_REVIEW": 23,
+      "PHASE_II_OPEN": 5,
+      "PHASE_II_REVIEW": 3,
+      "PHASE_I_OPEN": 9,
+      "PHASE_I_REVIEW": 11,
+      "QA_EVALUATION": 37,
+      "QA_REVIEW_PENDING": 24,
+      "REPORT_DRAFT": 32,
+      "TRIAGED": 45
+    }
+  }
+}

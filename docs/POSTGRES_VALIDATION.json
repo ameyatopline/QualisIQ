@@ -1,0 +1,12 @@
+{
+  "database": "Ephemeral PostgreSQL 16",
+  "migration_upgrade": "passed",
+  "schema_drift_check": "passed",
+  "seed_results": 500,
+  "authenticated_ingest": "passed",
+  "OOS_event": "passed",
+  "idempotent_replay": "passed",
+  "scoped_lineage": "passed",
+  "SQL_aggregate_count": 501,
+  "limitations": "Local smoke only; no HA, concurrent writes, disaster recovery or production capacity claim"
+}

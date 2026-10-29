@@ -1,0 +1,42 @@
+[
+  {
+    "publisher": "SAP",
+    "url": "https://learning.sap.com/courses/applying-sap-s-4hana-quality-management/using-inspection-lots-and-quality-notifications-in-the-logistics-supply-chain_a0e23470-b5bb-4b30-b4b8-7e886a42df1c",
+    "http_status": null,
+    "status": "URLError",
+    "checked_at": "2026-10-29T18:38:22.189207+00:00",
+    "classification": "PUBLIC_REFERENCE_METADATA",
+    "training_data": false,
+    "failure_layer": "Managed proxy domain allowlist (CONNECT 403 observed with curl); requested domain additions saved, not yet applied"
+  },
+  {
+    "publisher": "Sanofi / Veeva",
+    "url": "https://www.veeva.com/customer-stories/sanofi-driving-efficiency-and-growth-with-vault-quality/",
+    "http_status": null,
+    "status": "URLError",
+    "checked_at": "2026-10-29T18:38:22.191522+00:00",
+    "classification": "PUBLIC_REFERENCE_METADATA",
+    "training_data": false,
+    "failure_layer": "Managed proxy domain allowlist (CONNECT 403 observed with curl); requested domain additions saved, not yet applied"
+  },
+  {
+    "publisher": "Cipla",
+    "url": "https://www.cipla.com/sites/default/files/Annual-Report-FY-2022-23-Double-page.pdf",
+    "http_status": null,
+    "status": "URLError",
+    "checked_at": "2026-10-29T18:38:22.193902+00:00",
+    "classification": "PUBLIC_REFERENCE_METADATA",
+    "training_data": false,
+    "failure_layer": "Managed proxy domain allowlist (CONNECT 403 observed with curl); requested domain additions saved, not yet applied"
+  },
+  {
+    "publisher": "FDA",
+    "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/investigating-out-specification-oos-test-results-pharmaceutical-production-level-2-revision",
+    "http_status": null,
+    "status": "URLError",
+    "checked_at": "2026-10-29T18:38:22.196353+00:00",
+    "classification": "PUBLIC_REFERENCE_METADATA",
+    "training_data": false,
+    "failure_layer": "Managed proxy domain allowlist (CONNECT 403 observed with curl); requested domain additions saved, not yet applied"
+  }
+]

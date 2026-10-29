@@ -1,0 +1,25 @@
+{
+  "scope": "Local single-process SQLite read-only mixed-endpoint benchmark; not a production SLA",
+  "requests": 200,
+  "concurrency": 8,
+  "endpoints": [
+    "/api/v1/workbench/summary",
+    "/api/v1/workbench/events?limit=10",
+    "/api/v1/workbench/sites",
+    "/api/v1/workbench/trends"
+  ],
+  "completed": 200,
+  "failures": 0,
+  "duration_seconds": 1.9365741429999161,
+  "requests_per_second": 103.27515769170768,
+  "latency_ms": {
+    "p50": 42.556255000135934,
+    "p95": 249.1633469999215,
+    "p99": 295.95393900012823
+  },
+  "dataset": "50000 synthetic laboratory results / 24 sites / 1192 events",
+  "limitations": [
+    "Loopback network, one API process, one synthetic tenant, SQLite",
+    "No write, ingest, failover, distributed load or real-world throughput conclusion"
+  ]
+}
