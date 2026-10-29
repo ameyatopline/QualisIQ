@@ -100,3 +100,16 @@ def inspection_lots(q:str=Query('',max_length=80),site_id:int|None=Query(None,gt
         pattern='%'+q.replace('\\','\\\\').replace('%','\\%').replace('_','\\_')+'%'
         stmt=stmt.where(or_(m.InspectionLot.lot_number.ilike(pattern,escape='\\'),m.Batch.batch_number.ilike(pattern,escape='\\')))
     return [{'id':l.id,'inspection_lot':l.lot_number,'batch_number':b.batch_number,'material_code':mat.code,'material':mat.description,'sample_number':sample.sample_number,'site_code':site.code,'site_id':site.id} for l,b,mat,sample,site in db.execute(stmt.order_by(m.InspectionLot.id.desc()).limit(limit))]
+
+@router.get('/storage')
+def storage(user=Depends(get_current_user),db:Session=Depends(get_db)):
+    """Show the active local demo file, never connection strings or credentials."""
+    from sqlalchemy import text
+    from app.security import APP_ENV
+    backend=db.get_bind().dialect.name
+    if APP_ENV!='demo':
+        return {'backend':backend,'location':'Database service (connection details hidden)'}
+    if backend=='sqlite':
+        main=next(row for row in db.execute(text('PRAGMA database_list')).mappings() if row['name']=='main')
+        return {'backend':'sqlite','location':main['file'] or 'In-memory database (no file)'}
+    return {'backend':backend,'location':'Database service (connection details hidden)'}

@@ -17,6 +17,8 @@ test("connected control tower, filters, investigation edits, evidence, model, ex
   await expect(
     page.locator(".kpi-grid").getByText("50,000", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByLabel("Database storage")).toContainText("SQLite");
+  await expect(page.getByLabel("Database storage")).toContainText("demo.db");
   await page.screenshot({
     path: "test-results/control-tower-desktop.png",
     fullPage: true,

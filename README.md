@@ -25,6 +25,10 @@ Demo accounts: `qc_analyst@don-demo.test`, `qc_manager@don-demo.test`, `qa_revie
 
 `.env.example` documents variables; the API reads the process environment. It does not automatically load a `.env` file. Configure `ALLOWED_HOSTS` to the intended hostnames when serving behind a gateway; do not use a wildcard. No LLM key or external service is needed for the local workflow.
 
+### Database location
+
+By default, the SQLite database is the file `don_qualityos_demo.db` in the folder from which you start the backend (normally the repository root). The signed-in workspace displays the actual active SQLite file path beneath the page title. In-memory databases have no file. When using PostgreSQL or production mode, connection details remain hidden; the database is stored on the configured database server. Override the backend connection with the `DATABASE_URL` process variable.
+
 ### First workflow
 
 Sign in as QC analyst → Result intake → select an authorized inspection lot → record Assay `93.5 %` with a unique source ID → open the generated OOS case → inspect Lineage and Intelligence → complete investigation draft → record permitted workflow steps. QC-manager/independent-QA gates remain server-enforced. Intelligence outputs are advisory; no AI batch disposition exists.

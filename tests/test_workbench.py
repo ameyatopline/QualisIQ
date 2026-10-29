@@ -120,3 +120,34 @@ def test_readiness_and_token_audience(env,token):
     claims['aud']='another-service'
     forged=jwt.encode(claims,JWT_SECRET,algorithm='HS256')
     assert client.get('/api/v1/workbench/summary',headers={'Authorization':'Bearer '+forged}).status_code==401
+
+def test_storage_requires_auth_and_handles_memory_database(env,token):
+    client,_=env
+    assert client.get('/api/v1/workbench/storage').status_code==401
+    response=client.get('/api/v1/workbench/storage',headers=token('qc_analyst'))
+    assert response.status_code==200
+    assert response.json()=={'backend':'sqlite','location':'In-memory database (no file)'}
+
+def test_storage_reports_actual_file_and_hides_production_details(env,token,tmp_path,monkeypatch):
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+    from app.database import Base,get_db
+    from app.main import app
+    from app import security
+    from scripts.seed_enterprise import setup_master
+    client,_=env;headers=token('qc_analyst')
+    path=tmp_path/'actual-demo.db';engine=create_engine(f'sqlite:///{path}',connect_args={'check_same_thread':False})
+    Base.metadata.create_all(engine);Factory=sessionmaker(bind=engine)
+    with Factory() as db:
+        setup_master(db,1);db.commit()
+    def override():
+        with Factory() as db:yield db
+    app.dependency_overrides[get_db]=override
+    try:
+        assert client.get('/api/v1/workbench/storage',headers=headers).json()=={'backend':'sqlite','location':str(path)}
+        monkeypatch.setattr(security,'APP_ENV','production')
+        response=client.get('/api/v1/workbench/storage',headers=headers)
+        assert response.status_code==200
+        assert str(path) not in response.text
+        assert 'connection details hidden' in response.json()['location']
+    finally:engine.dispose()

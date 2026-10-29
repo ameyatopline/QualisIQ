@@ -320,6 +320,7 @@ function Workbench({
   const [offset, setOffset] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
+  const storage = useData("/workbench/storage", token, revision);
   const sites = useData("/workbench/sites", token, revision);
   const summary = useData(
     "/workbench/summary" + (site ? "?site_id=" + site : ""),
@@ -466,19 +467,6 @@ function Workbench({
                   </span>
                 )}
               </h1>
-              <p>
-                {page === "tower"
-                  ? "One connected view. From laboratory result to quality resolution."
-                  : page === "events"
-                    ? "Investigate exceptions with the evidence and context that matter."
-                    : page === "sites"
-                      ? "A common quality language across your site network."
-                      : page === "model"
-                        ? "Measured performance. Visible limitations. Human decisions."
-                        : page === "sources"
-                          ? "Public references and transparent data provenance."
-                          : "Traceable quality work, connected to its source."}
-              </p>
             </div>
             <div className="heading-actions">
               {["tower", "events", "capas"].includes(page) && (
@@ -510,6 +498,14 @@ function Workbench({
             </div>
           </div>
           <ErrorBox error={summary.error || sites.error || exportError} />
+          <div className="database-storage" aria-label="Database storage">
+            <Database size={15} aria-hidden="true" />
+            <strong>Database</strong>
+            {storage.loading ? <span>Loading…</span> : storage.error ? <span role="status">Location unavailable</span> : <>
+              <span>{storage.data?.backend === "sqlite" ? "SQLite" : storage.data?.backend === "postgresql" ? "PostgreSQL" : storage.data?.backend}</span>
+              <code>{storage.data?.location}</code>
+            </>}
+          </div>
           <div className="disclosure">
             <Beaker size={15} />
             <strong>Synthetic demonstration</strong>
