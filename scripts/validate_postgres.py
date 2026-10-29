@@ -39,8 +39,9 @@ try:
         ev=r.json()['event_id']
         r=client.post('/api/v1/lab/results',json=incoming,headers=h);r.raise_for_status();assert r.json()['replayed'] is True
         r=client.get(f'/api/v1/workbench/events/{ev}/lineage',headers=h);r.raise_for_status();assert r.json()['source']['record_id']=='PG-VALIDATION-001'
+        r=client.get(f'/api/v1/workbench/events/{ev}/analysis',headers=h);r.raise_for_status();assert r.json()['history'][-1]['is_current'] and r.json()['specification']['within_limits'] is False
         r=client.get('/api/v1/workbench/summary',headers=h);r.raise_for_status();assert r.json()['total_results']==501
-    report={'database':'Ephemeral PostgreSQL 16','migration_upgrade':'passed','schema_drift_check':'passed','seed_results':500,'authenticated_ingest':'passed','OOS_event':'passed','idempotent_replay':'passed','scoped_lineage':'passed','SQL_aggregate_count':501,'limitations':'Local smoke only; no HA, concurrent writes, disaster recovery or production capacity claim'}
+    report={'database':'Ephemeral PostgreSQL 16','migration_upgrade':'passed','schema_drift_check':'passed','seed_results':500,'authenticated_ingest':'passed','OOS_event':'passed','idempotent_replay':'passed','scoped_lineage':'passed','investigation_graph_data':'passed','SQL_aggregate_count':501,'limitations':'Local smoke only; no HA, concurrent writes, disaster recovery or production capacity claim'}
     (root/'docs/POSTGRES_VALIDATION.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
 finally:
     if api:

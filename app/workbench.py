@@ -113,3 +113,103 @@ def storage(user=Depends(get_current_user),db:Session=Depends(get_db)):
         main=next(row for row in db.execute(text('PRAGMA database_list')).mappings() if row['name']=='main')
         return {'backend':'sqlite','location':main['file'] or 'In-memory database (no file)'}
     return {'backend':backend,'location':'Database service (connection details hidden)'}
+
+@router.get('/events/{event_id}/analysis')
+def investigation_analysis(
+    event_id: int,
+    limit: int = Query(40, ge=2, le=100),
+    user=Depends(get_current_user),
+    db: Session=Depends(get_db),
+):
+    """Retrospective, comparable result history; never estimates a new OOT baseline."""
+    from sqlalchemy import and_
+
+    event = scoped_event(db, event_id, user)
+    current = db.scalar(select(m.TestResult).where(
+        m.TestResult.id == event.result_id,
+        m.TestResult.tenant_id == user.tenant_id,
+        m.TestResult.site_id == event.site_id,
+    ))
+    if current is None:
+        raise HTTPException(404, 'Investigation result not found')
+    specification = db.scalar(select(m.Specification).where(
+        m.Specification.id == current.specification_id,
+        m.Specification.tenant_id == user.tenant_id,
+    ))
+    if specification is None:
+        raise HTTPException(404, 'Investigation specification not found')
+    if current.unit != specification.unit:
+        raise HTTPException(422, 'Stored result and specification units do not match')
+
+    # Use the result's linked baseline, rather than selecting a newer/current profile.
+    baseline = db.get(m.OOTProfile, current.oot_profile_id) if current.oot_profile_id else None
+    reason = None
+    if baseline is None:
+        reason = 'No stored OOT baseline is linked to this result.'
+    elif baseline.specification_id != specification.id:
+        reason = 'The linked OOT baseline does not match this specification.'
+    elif not baseline.approved_for_demo:
+        reason = 'The linked OOT baseline is not approved for demo use.'
+    elif baseline.sigma <= 0 or baseline.z_threshold <= 0:
+        reason = 'The linked OOT baseline requires positive sigma and threshold.'
+    elif baseline.baseline_n < 8:
+        reason = 'The linked OOT baseline has fewer than eight observations.'
+    usable_baseline = baseline if reason is None else None
+
+    stmt = select(m.TestResult).where(
+        m.TestResult.tenant_id == user.tenant_id,
+        m.TestResult.site_id == current.site_id,
+        m.TestResult.material_id == current.material_id,
+        m.TestResult.specification_id == specification.id,
+        m.TestResult.test_name == current.test_name,
+        m.TestResult.unit == current.unit,
+        or_(
+            m.TestResult.measured_at < current.measured_at,
+            and_(m.TestResult.measured_at == current.measured_at, m.TestResult.id <= current.id),
+        ),
+    )
+    total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+    rows = list(db.scalars(stmt.order_by(
+        m.TestResult.measured_at.desc(), m.TestResult.id.desc(),
+    ).limit(limit)))[::-1]
+
+    def utc_timestamp(value):
+        value = value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc).isoformat().replace('+00:00', 'Z')
+
+    points = []
+    for row in rows:
+        # No retrospective normalization against a different profile version.
+        z = ((row.value - usable_baseline.mean) / usable_baseline.sigma
+             if usable_baseline and row.oot_profile_id == usable_baseline.id else None)
+        points.append({
+            'result_id': row.id, 'value': str(row.value), 'signed_z': str(z) if z is not None else None,
+            'measured_at': utc_timestamp(row.measured_at), 'outcome': row.outcome,
+            'source_system': row.source_system, 'source_record_id': row.source_record_id,
+            'is_current': row.id == current.id,
+        })
+    lower, upper = specification.lower_limit, specification.upper_limit
+    within = (None if lower is None and upper is None else
+              (lower is None or current.value >= lower) and (upper is None or current.value <= upper))
+    site = db.scalar(select(m.Site).where(m.Site.id == current.site_id, m.Site.tenant_id == user.tenant_id))
+    material = db.scalar(select(m.Material).where(m.Material.id == current.material_id, m.Material.tenant_id == user.tenant_id))
+    return {
+        'event_id': event.id, 'event_number': event.event_number, 'kind': event.kind,
+        'current_result_id': current.id, 'current_value': str(current.value), 'unit': current.unit,
+        'cohort': {'site': site.code if site else None, 'material': material.code if material else None,
+                   'test': current.test_name, 'specification_id': specification.id},
+        'specification': {'version': specification.version, 'lower': str(lower) if lower is not None else None,
+                          'upper': str(upper) if upper is not None else None, 'within_limits': within},
+        'baseline': ({'id': usable_baseline.id, 'version': usable_baseline.version,
+                      'mean': str(usable_baseline.mean), 'sigma': str(usable_baseline.sigma),
+                      'threshold': str(usable_baseline.z_threshold), 'n': usable_baseline.baseline_n,
+                      'method': usable_baseline.method} if usable_baseline else None),
+        'oot_status': ('NOT_ASSESSED' if not usable_baseline else
+                       'CONTEXT_ONLY_OOS' if current.outcome == 'OOS' else 'ASSESSED_DEMO'),
+        'oot_reason': reason,
+        'history': points,
+        'window': {'limit': limit, 'shown': len(points), 'available': total, 'truncated': total > len(points),
+                   'order': 'measurement time, then result ID; ending at the case result'},
+        'synthetic': db.get(m.Tenant, user.tenant_id).synthetic,
+        'notice': 'Stored demo limits and baseline only. Z-scores are context, not a validated OOT procedure. OOS takes precedence; human investigation remains required.',
+    }

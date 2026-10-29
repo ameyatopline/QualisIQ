@@ -45,6 +45,10 @@ Sign in as QC analyst → Result intake → select an authorized inspection lot 
 
 Use Control tower for database-backed metrics, charts and filtered worklists. Site network opens per-site cases. CAPA and document screens display actual stored metadata. Source library distinguishes reference links from imported content. The model screen shows measured performance against a baseline and limitations.
 
+### Investigation graphs
+
+Open an investigation → **Analysis** (or **View OOS / OOT graphs** on Overview). Each case has a specification-limit graph and a stored-baseline Z-score graph, with a highlighted case result, 20/40/80-result comparable-history windows and exact source data. Missing or invalid baselines remain not assessed. See [graph definitions and examples](docs/INVESTIGATION_GRAPHS.md). No reseeding or schema migration is needed.
+
 ## Validation
 
 ```bash

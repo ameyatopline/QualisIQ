@@ -1,0 +1,49 @@
+{
+  "validated_at_utc": "2026-10-29T20:51:00.777857+00:00",
+  "feature": "Per-investigation OOS / OOT graphs",
+  "backend_tests": {
+    "passed": 46,
+    "failed": 0,
+    "warnings": 10
+  },
+  "new_graph_backend_tests": {
+    "passed": 10,
+    "failed": 0,
+    "coverage": [
+      "Bounded comparable history ending at the case result",
+      "Exclusion of future/tied-later, other-site/material/test rows",
+      "Positive and negative signed Z for in-spec OOT cases",
+      "Missing, retired, zero-sigma and undersized baselines",
+      "Baseline-version gaps",
+      "Authentication and foreign-site/tenant rejection"
+    ]
+  },
+  "browser_scenarios": {
+    "existing_passed": 4,
+    "graph_scenario_passed": 1,
+    "failed": 0,
+    "execution": "Existing suite plus targeted graph scenario; graph scenario rerun after graph-specific changes",
+    "graph_coverage": [
+      "OOS and OOT charts, correct within/outside-limit badge",
+      "Overview shortcut and Analysis tab",
+      "History-window selection and source-table current result",
+      "Current case visible horizontally in mobile graph view"
+    ]
+  },
+  "typescript_build": "passed",
+  "postgresql_smoke": "passed including graph-data endpoint",
+  "database_schema_changed": false,
+  "new_synthetic_measurements_created_in_primary_database": false,
+  "screenshots": [
+    "screenshots/investigation-oos-graphs.png",
+    "screenshots/investigation-oot-graphs.png",
+    "screenshots/investigation-graphs-mobile.png"
+  ],
+  "limits": [
+    "Graphs use stored synthetic demo data and are not validated OOT procedures",
+    "OOS precedence is preserved; OOS Z scores are context only",
+    "History is measurement chronology, not an ingestion-time causal holdout",
+    "Baseline version gaps and unusable baselines are not filled"
+  ],
+  "public_deployment": false
+}

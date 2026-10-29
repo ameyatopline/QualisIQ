@@ -39,6 +39,7 @@ import {
   LockKeyhole,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { InvestigationAnalysis } from "./InvestigationAnalysis";
 import "./style.css";
 
 type Data = Record<string, any>;
@@ -1347,6 +1348,12 @@ function Investigation({
   const isPresent = useIsPresent();
   const dismissX = isPresent ? 72 : Math.max(72, sheetX.get() + 72);
   const [revision, setRevision] = useState(0);
+  const [historyLimit, setHistoryLimit] = useState(40);
+  const analysis = useData(
+    `/workbench/events/${id}/analysis?limit=${historyLimit}`,
+    token,
+    revision,
+  );
   const event = useData(`/quality/events/${id}`, token, revision);
   const lineage = useData(`/workbench/events/${id}/lineage`, token, revision);
   const brief = useData(`/quality/events/${id}/ai-brief`, token, revision);
@@ -1495,30 +1502,34 @@ function Investigation({
               </p>
             </div>
             <div className="drawer-tabs">
-              {["overview", "investigation", "lineage", "intelligence"].map(
-                (t) => (
-                  <button
-                    key={t}
-                    aria-pressed={tab === t}
-                    className={tab === t ? "selected" : ""}
-                    onClick={() => setTab(t)}
-                  >
-                    {tab === t && (
-                      <motion.span
-                        className="tab-selection"
-                        layoutId={`investigation-tab-${id}`}
-                        transition={{
-                          type: "spring",
-                          stiffness: 450,
-                          damping: 40,
-                          mass: 0.8,
-                        }}
-                      />
-                    )}
-                    <span>{pretty(t)}</span>
-                  </button>
-                ),
-              )}
+              {[
+                "overview",
+                "analysis",
+                "investigation",
+                "lineage",
+                "intelligence",
+              ].map((t) => (
+                <button
+                  key={t}
+                  aria-pressed={tab === t}
+                  className={tab === t ? "selected" : ""}
+                  onClick={() => setTab(t)}
+                >
+                  {tab === t && (
+                    <motion.span
+                      className="tab-selection"
+                      layoutId={`investigation-tab-${id}`}
+                      transition={{
+                        type: "spring",
+                        stiffness: 450,
+                        damping: 40,
+                        mass: 0.8,
+                      }}
+                    />
+                  )}
+                  <span>{pretty(t)}</span>
+                </button>
+              ))}
             </div>
             <div className="drawer-content">
               <ErrorBox error={error} />
@@ -1528,8 +1539,25 @@ function Investigation({
                   {saved}
                 </div>
               )}
+              {tab === "analysis" && (
+                <InvestigationAnalysis
+                  data={analysis.data}
+                  error={analysis.error}
+                  loading={analysis.loading}
+                  limit={historyLimit}
+                  onLimitChange={setHistoryLimit}
+                />
+              )}
               {tab === "overview" && (
                 <>
+                  <button
+                    className="button analysis-shortcut"
+                    onClick={() => setTab("analysis")}
+                  >
+                    <Activity size={16} />
+                    View OOS / OOT graphs
+                    <ArrowUpRight size={15} />
+                  </button>
                   <div className="case-context">
                     <div>
                       <span>Observed result</span>

@@ -209,3 +209,65 @@ test("investigation sheet supports swipe dismissal and reduced-motion keyboard u
     page.getByRole("heading", { name: "Public source register" }),
   ).toBeVisible();
 });
+
+test("every OOS and OOT investigation exposes specification and baseline graphs", async ({
+  page,
+}) => {
+  await login(page);
+  for (const kind of ["OOS", "OOT"]) {
+    await page.getByLabel("Filter exception type").selectOption(kind);
+    await expect(page.locator("tbody tr").first()).toContainText(kind);
+    await page.locator(".case-link").first().click();
+    if (kind === "OOS")
+      await page
+        .getByRole("button", { name: "View OOS / OOT graphs", exact: true })
+        .click();
+    else
+      await page.getByRole("button", { name: "Analysis", exact: true }).click();
+    await expect(
+      page.getByRole("img", { name: "OOS specification chart", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("img", { name: "OOT baseline chart", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(kind === "OOS" ? "Outside limits" : "Within limits", {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await page.getByLabel("History window", { exact: true }).selectOption("20");
+    await expect(
+      page.getByRole("img", { name: "OOT baseline chart", exact: true }),
+    ).toBeVisible();
+    await page.locator(".analysis-data summary").click();
+    await expect(
+      page.locator(".analysis-data tr[data-current=true]"),
+    ).toHaveCount(1);
+    await expect(
+      page.locator(".analysis-data tr[data-current=true]"),
+    ).toContainText(kind);
+    await page.getByLabel("Close investigation").click();
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator(".case-link").first().click();
+  await page.getByRole("button", { name: "Analysis", exact: true }).click();
+  await expect(
+    page.getByRole("img", { name: "OOT baseline chart", exact: true }),
+  ).toBeVisible();
+  for (const chart of await page.locator(".case-chart-scroll").all()) {
+    await expect
+      .poll(() =>
+        chart.evaluate((element) => {
+          const point = element.querySelector("[data-current=true]");
+          if (!point) return false;
+          const p = point.getBoundingClientRect(),
+            viewport = element.getBoundingClientRect();
+          return p.left >= viewport.left && p.right <= viewport.right;
+        }),
+      )
+      .toBe(true);
+  }
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+});
